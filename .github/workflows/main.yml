@@ -10,17 +10,21 @@ on:
 
 jobs:
   download_music:
+    # Using ubuntu-latest is recommended as it usually has recent tools/versions
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Step 2: Set up Python - By omitting python-version, it uses the action's default (usually recent)
       - name: Set up Python
         uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
+        # No 'with: python-version' means it uses the default Python version
+        # provided by the setup-python action, often the latest stable one
+        # it supports or the one pre-installed on the runner.
 
+      # Step 3: Install ffmpeg
       - name: Install ffmpeg
         run: |
           sudo apt-get update
@@ -29,14 +33,16 @@ jobs:
       # Step 4: Install/Upgrade spotdl AND yt-dlp
       - name: Install/Upgrade spotdl and yt-dlp
         run: |
-          pip install --upgrade pip # Ensure pip is up to date
-          pip install --upgrade spotdl yt-dlp # Install or upgrade both packages
+          python -m pip install --upgrade pip # Use 'python -m pip' for clarity
+          python -m pip install --upgrade spotdl yt-dlp
 
-      # Optional: Check versions after upgrade
+      # Optional: Check versions after setup/upgrade
       - name: Check versions
         run: |
+          python --version # Check the Python version being used
           spotdl --version
           yt-dlp --version
+          ffmpeg -version
 
       - name: Create download directory
         run: mkdir music-downloads
@@ -44,10 +50,10 @@ jobs:
       - name: Download music using spotdl
         run: |
           echo "Attempting to download from: ${{ github.event.inputs.spotify_url }}"
-          # Using INFO level logging is usually sufficient
+          # Using INFO level logging. Use DEBUG for more verbosity if needed.
           spotdl download "${{ github.event.inputs.spotify_url }}" --output ./music-downloads --log-level INFO
 
-      # Debugging Step (Keep it for now)
+      # Debugging Step (Keep it to verify downloads before upload attempt)
       - name: List files in download directory
         run: |
           echo "Current directory: $(pwd)"
@@ -57,12 +63,10 @@ jobs:
           ls -la .
 
       - name: Upload Music Artifact
-        # Only run upload if the download step was successful (default behavior)
-        # or if the download directory actually contains files (more robust check)
-        # Using default behavior is usually fine if download step fails on error.
         uses: actions/upload-artifact@v4
         with:
           name: downloaded-music
           path: ./music-downloads/
           retention-days: 7
-          if-no-files-found: error # Fail the workflow if the directory is empty
+          # Fail the workflow explicitly if no files were downloaded
+          if-no-files-found: error
