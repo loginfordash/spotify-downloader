@@ -1,0 +1,55 @@
+name: SpotDL Music Downloader # Name of the workflow displayed on GitHub Actions tab
+
+# Trigger the workflow manually from the Actions tab
+on:
+  workflow_dispatch:
+    inputs:
+      spotify_url:
+        description: 'Spotify Song/Playlist/Album URL' # Description shown in the UI
+        required: true                             # Makes this input mandatory
+        type: string                               # Type of input expected
+
+jobs:
+  download_music:
+    runs-on: ubuntu-latest # Use the latest Ubuntu runner
+
+    steps:
+      # Step 1: Check out the repository code (optional for this specific workflow, but good practice)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10' # Specify Python version (spotdl is compatible with newer versions)
+
+      # Step 3: Install ffmpeg (required dependency for spotdl)
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      # Step 4: Install spotdl package
+      - name: Install spotdl
+        run: pip install spotdl
+
+      # Step 5: Create directory for downloads (ensures it exists)
+      - name: Create download directory
+        run: mkdir music-downloads
+
+      # Step 6: Run spotdl to download music
+      - name: Download music using spotdl
+        run: |
+          echo "Attempting to download from: ${{ github.event.inputs.spotify_url }}"
+          spotdl download "${{ github.event.inputs.spotify_url }}" --output ./music-downloads
+        # You can add more spotdl flags here if needed, e.g.:
+        # --format mp3 --audio youtube-music etc.
+
+      # Step 7: Upload the downloaded files as a workflow artifact
+      - name: Upload Music Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: downloaded-music # Name of the artifact file you will download
+          path: ./music-downloads/ # Path to the directory containing the downloads
+          retention-days: 7 # Optional: Keep artifact for 7 days (default is 90 for public repos, varies for private)
