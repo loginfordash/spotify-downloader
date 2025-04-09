@@ -20,9 +20,12 @@ jobs:
       # Step 2: Set up Python - By omitting python-version, it uses the action's default (usually recent)
       - name: Set up Python
         uses: actions/setup-python@v5
+        with:
+          python-version: '>=3.9'
         # No 'with: python-version' means it uses the default Python version
         # provided by the setup-python action, often the latest stable one
         # it supports or the one pre-installed on the runner.
+        
 
       # Step 3: Install ffmpeg
       - name: Install ffmpeg
@@ -34,7 +37,7 @@ jobs:
       - name: Install/Upgrade spotdl and yt-dlp
         run: |
           python -m pip install --upgrade pip # Use 'python -m pip' for clarity
-          python -m pip install --upgrade spotdl yt-dlp==2024.11.18
+          python -m pip install --upgrade spotdl yt-dlp --update-to nightly
 
       # Optional: Check versions after setup/upgrade
       - name: Check versions
