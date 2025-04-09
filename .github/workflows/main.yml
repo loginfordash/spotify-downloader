@@ -34,7 +34,7 @@ jobs:
       - name: Install/Upgrade spotdl and yt-dlp
         run: |
           python -m pip install --upgrade pip # Use 'python -m pip' for clarity
-          python -m pip install --upgrade spotdl yt-dlp
+          python -m pip install --upgrade spotdl yt-dlp==2024.11.18
 
       # Optional: Check versions after setup/upgrade
       - name: Check versions
